@@ -1,0 +1,21 @@
+---
+title: "Mini Project 1"
+author: "Prajwal Bhandari"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Front matter
+```{r}
+# import libraries
+library(tidyverse)
+library(readxl)
+# read data
+cod <- read_xlsx("c:/users/pb601/onedrive/desktop/stat_380/project1", sheet = 1)
+```
+
