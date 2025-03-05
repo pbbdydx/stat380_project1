@@ -16,7 +16,6 @@ knitr::opts_chunk$set(echo = TRUE)
 # remove(list = ls())
 library(tidyverse)
 library(readxl)
-library(forcats)
 # read data
 cod <- read_xlsx("CODGames2_mp.xlsx", sheet = 1)
 ```
@@ -72,10 +71,9 @@ cod_working <- cod %>%
   ) %>%
   separate(result, into = c('team_result', 'other_team_result'), sep = '-', extra = 'merge', convert = TRUE) 
 
-
-# figure out na values for each column
+# drop columns with a lot of NA values
 apply(cod_working, MARGIN = 2, FUN = function(x) sum(is.na(x))) # counts total NA in columns
-# since NA values are either < 50 or >=200 drop all columns with more than 200 NA values
+# since NA values are either < 50 or >200 drop all columns with more than 200 NA values
 
 cod_working <- cod_working %>%
   select(where(~ sum(is.na(.)) < 200))
@@ -85,11 +83,11 @@ cod_working <- cod_working %>%
 
 
 
-## Part 1 
+## Variable Exploration 
 
-The first variable we decided to explore is `choice`. It is a categorical variable that represents the map that each game was played on and there is only one missing value for this variable. It's reasonable to state that the count of each variable is the number of games played on that map. 
+The first variable we decided to explore is `choice`. It is a categorical variable and there is only one missing value for this variable.
 
-We see the number of 
+
 ```{r}
 sum(is.na(cod_working$choice))
 ```
@@ -99,15 +97,79 @@ data.frame(cod_working$choice) %>% # convert sngle col into dataframe
   na.omit() %>% # makes sense to omit single observation in one variable
   ggplot(aes(x = cod_working.choice)) +
   geom_bar(fill = 'lightgreen', color = 'black') +
-  labs(
-    x = 'Map Choice',
-    y = 'Games Played ', 
-    title = 'Bar Plot of Map Choice and Games Played',
-    caption = '* one dropped value'
-  ) +
   coord_flip() +
-  theme_bw()
+  labs(
+    y = 'Map Choice',
+    x = 'Count', 
+    title = 'Bar Plot of Map Choice',
+    caption = '* one dropped value'
+  )
 ```
 
 From the bar chart above, there are a few observations that we can make. The least chosen map is 'Amerika' with 3 picks, the the most chosen are 'Rush', 'Diesel', and 'Crossroads Strike' with 15 picks. Other maps tend to be between 5 and 12 picks. It's interesting to see that the maps are not chosen equally. Further questions could be asked about why some maps are chosen more than others but that is outside the scope of our analysis. 
 
+
+The second variable that we thought is interesting to explore is 'eliminations'. It is a quantitative variable and there are no missing values. This variable represents the amount of kills per round so it can take any non-negative integer value.
+
+```{r}
+sum(is.na(cod_working$eliminations))
+```
+```{r}
+cod_working %>%
+  dplyr::select(eliminations) %>%
+  summarize(min = min(eliminations),
+            max = max(eliminations),
+            mean = mean(eliminations),
+            median = median(eliminations),
+            sd = sd(eliminations))
+
+```
+
+```{r}
+data.frame(cod_working$eliminations) %>%
+  ggplot(aes(x = cod_working$eliminations)) +
+    geom_histogram(fill = 'lightgreen', color = 'black') +
+    labs(title = "Distribution of Eliminations",
+      x = "Eliminations",
+      y = "Number of Matches"
+    )
+```
+
+From the histogram and summary statistics above, there are a few observations we can make. The eliminations ranged from 2 to 39, with many values falling in between 10 and 20. The distribution is right skewed with a mean of 15.09005 and a median of 14. The histogram shows that there were a few good matches where players had over 30 eliminations, and some poor matches with under 10 eliminations. However, most fell in between 10 and 20 as I said before. 
+
+
+The third variable that we thought is interesting to explore is the `primary_weapon` variable, which is self explanatory. There are 9 different primary weapons that are used: M16, MP5, AK47, Krig 6, QBZ-83, Pelington 703 FFAR 1, Type 63, and the MG82. Like we saw above, there are no missing values in this variable.
+
+```{r}
+ggplot(data = cod_working, mapping = aes(x = fct_reorder(primary_weapon,primary_weapon, .fun = length))) + 
+  geom_bar(fill = 'lightgreen', color = 'black') +
+  labs(
+    x = 'Primary Weapon Used', 
+    y = 'Number of Games',
+    title = 'Counts for Primary Weapon'
+  ) + 
+  theme_bw()
+```
+
+It's interesting to see the disparity between weapon choice. The M16 was used in 48 games, while weapons like the MG 82, FFAR 1 and AK-47 were used in less than 5 games. Some potential reasons would be that the player has a favorite weapon, although that is also outside the scope of this analysis. 
+
+We then analyze the `score` variable. It's quantitative, can take any integer larger than 0,  and has no missing values. 
+```{r}
+cod_working %>% 
+  select(score) %>%
+  summarize(min = min(score), 
+            max = max(score), 
+            mean = mean(score), 
+            median = median(score),
+            std = sd(score)
+            )
+
+ggplot(data = cod_working, mapping = aes(x = score)) +
+  geom_histogram(binwidth = 250, fill = 'lightgreen', color = 'black') +
+  labs(
+    x = 'Score',
+    y = 'Number of Games',
+    title = 'Call of Duty Score Distribution') +
+  theme_bw()
+```
+We see that the scores range from 100 to 7300. It takes a mean of 2944 with a standard deviation of 1464. We see that the mean is slightly higher than the median (around 200), which indicates a little right skew. This is also confirmed by the histogram, where there are a few outliers that are much higher than the bulk of the data.
