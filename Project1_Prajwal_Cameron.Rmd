@@ -108,4 +108,31 @@ data.frame(cod_working$choice) %>% # convert sngle col into dataframe
 
 From the bar chart above, there are a few observations that we can make. The least chosen map is 'Amerika' with 3 picks, the the most chosen are 'Rush', 'Diesel', and 'Crossroads Strike' with 15 picks. Other maps tend to be between 5 and 12 picks. It's interesting to see that the maps are not chosen equally. Further questions could be asked about why some maps are chosen more than others but that is outside the scope of our analysis. 
 
-The second variable that we thought is interesting to explore is the '
+
+The second variable that we thought is interesting to explore is 'eliminations'. It is a quantitative variable and there are no missing values. This variable represents the amount of kills per round.
+
+```{r}
+sum(is.na(cod_working$eliminations))
+```
+```{r}
+cod_working %>%
+  dplyr::select(eliminations) %>%
+  summarize(min = min(eliminations),
+            max = max(eliminations),
+            mean = mean(eliminations),
+            median = median(eliminations),
+            sd = sd(eliminations))
+
+```
+
+```{r}
+data.frame(cod_working$eliminations) %>%
+  ggplot(aes(x = cod_working$eliminations)) +
+    geom_histogram(fill = 'lightgreen', color = 'black') +
+    labs(title = "Distribution of Eliminations",
+      x = "Eliminations",
+      y = "Number of Matches"
+    )
+```
+
+From the histogram and summary statistics above, there are a few observations we can make. The eliminations ranged from 2 to 39, with many values falling in between 10 and 20. The distribution is right skewed with a mean of 15.09005 and a median of 14. The histogram shows that there were a few good matches where players had over 30 eliminations, and some poor matches wth under 10 eliminations. However, most fell in between 10 and 20 as I said before. 
