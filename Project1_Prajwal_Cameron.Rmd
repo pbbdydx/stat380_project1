@@ -111,30 +111,3 @@ data.frame(cod_working$choice) %>% # convert sngle col into dataframe
 
 From the bar chart above, there are a few observations that we can make. The least chosen map is 'Amerika' with 3 picks, the the most chosen are 'Rush', 'Diesel', and 'Crossroads Strike' with 15 picks. Other maps tend to be between 5 and 12 picks. It's interesting to see that the maps are not chosen equally. Further questions could be asked about why some maps are chosen more than others but that is outside the scope of our analysis. 
 
-The third variable that we thought is interesting to explore is the `primary_weapon` variable, which is self explanatory. There are 9 different primary weapons that are used: M16, MP5, AK47, Krig 6, QBZ-83, Pelington 703 FFAR 1, Type 63, and the MG82. Like we saw above, there are no missing values in this variable.
-
-```{r}
-ggplot(data = cod_working, mapping = aes(x = fct_reorder(primary_weapon,primary_weapon, .fun = length))) + 
-  geom_bar(fill = 'lightgreen', color = 'black') +
-  labs(
-    x = 'Primary Weapon Used', 
-    y = 'Number of Games',
-    title = 'Counts for Primary Weapon'
-  ) + 
-  theme_bw()
-```
-
-It's interesting to see the disparity between weapon choice. The M16 was used in 48 games, while weapons like the MG 82, FFAR 1 and AK-47 were used in less than 5 games. Some potential reasons would be that the player has a favorite weapon, although that is also outside the scope of this analysis. 
-
-We then analyze the `score` variable. It's quantitative and has no missing values. A histogram would be most appropriate here to visualize the score distribution. 
-
-```{r}
-ggplot(data = cod_working, mapping = aes(x = score)) +
-  geom_histogram(binwidth = 250, fill = 'lightgreen', color = 'black')+
-  labs(
-    x = 'Score',
-    y = 'Number of Games',
-    title = 'Call of Duty Score Distribution') +
-  theme_bw()
-```
-
