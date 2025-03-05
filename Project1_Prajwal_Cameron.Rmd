@@ -13,9 +13,96 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Front matter
 ```{r}
 # import libraries
+# remove(list = ls())
 library(tidyverse)
 library(readxl)
 # read data
-cod <- read_xlsx("c:/users/pb601/onedrive/desktop/stat_380/project1", sheet = 1)
+cod <- read_xlsx("c:/users/pb601/onedrive/desktop/stat_380/project1/CODGames2_mp.xlsx", sheet = 1)
 ```
+## Preliminary 
+```{r}
+glimpse(cod)
+```
+
+In this data, there are 211 observations, each with 27 different attributes. Variables like `map1`, `map2`, `PrimaryWeapom`, and other character variables could be converted into factors for easier analysis. The variable `XPType` could be converted to a numerical value instead of staying as a character variable. We could do some easy math to arrive at an XP multiplier that is applied to each game. Finally, variables like the date could be parsed by functions from the lubridate package that would make working with them easier. Other work like changing all the NA values in `ObjejctiveKills`, `Captures`, `Plants`, and others would make more sense to make the analysis easier and so that we don't have to work with missing data. Also, rename variables to be in snake case. 
+
+We can make the following changes and then begin variable exploration. 
+```{r}
+cod_working <- cod %>%
+  rename(
+    map1 = Map1,
+    map2 = Map2,
+    choice = Choice,
+    map_vote = MapVote,
+    date = Date,
+    full_partial = FullPartial,
+    result = Result,
+    eliminations = Eliminations,
+    deaths = Deaths,
+    score = Score,
+    damage = Damage,
+    total_xp = TotalXP,
+    primary_weapon = PrimaryWeapon,
+    xp_multiplier = XPType, # call this multiplier, will convert in next commans
+    did_player_vote = DidPlayerVote,
+    game_type = GameType,
+    confirms = Confirms,
+    denies = Denies,
+    objectives = Objectives,
+    objective_kills = ObjectiveKills,
+    captures = Captures,
+    diffuses = Diffuses,
+    plants = Plants,
+    detonates = Detonates,
+    deposits = Deposits,
+    time_sec = Time_Sec,
+    time_min = Time_Min
+  ) %>%
+  mutate(  # for now, only mutating variables we think are important
+    map1 = as.factor(map1), 
+    map2 = as.factor(map2),
+    choice = as.factor(choice),
+    full_partial = as.factor(full_partial),
+    primary_weapon = as.factor(primary_weapon),
+    xp_multiplier = if_else(xp_multiplier == '10% Boost', 1.10, 2.10),
+    did_player_vote = as.logical(if_else(did_player_vote == 'Yes',1,0)),
+  ) 
+
+# trying to split result column
+# separate_wider_delim(result, into = c('team_result', 'other_team_result'), sep = '-', extra = 'merge')
+
+
+# drop columns with a lot of NA values
+apply(cod_working, MARGIN = 2, FUN = function(x) sum(is.na(x))) # counts total NA in columns
+# since NA values are either < 50 or >200 drop all columns with more than 200 NA values
+
+```
+
+
+
+
+## Variable Exploration 
+
+The first variable we decided to explore is `choice`. It is a categorical variable and there is only one missing value for this variable.
+
+
+```{r}
+sum(is.na(cod_working$choice))
+```
+
+```{r}
+data.frame(cod_working$choice) %>% # convert sngle col into dataframe
+  na.omit() %>% # makes sense to omit single observation in one variable
+  ggplot(aes(x = cod_working.choice)) +
+  geom_bar(fill = 'lightgreen', color = 'black') +
+  coord_flip() +
+  labs(
+    y = 'Map Choice',
+    x = 'Count', 
+    title = 'Bar Plot of Map Choice',
+    caption = '* one dropped value'
+  )
+```
+
+From the bar chart above, there are a few observations that we can make. The least chosen map is 'Amerika' with 3 picks, the the most chosen are 'Rush', 'Diesel', and 'Crossroads Strike' with 15 picks. Other maps tend to be between 5 and 12 picks. It's interesting to see that the maps are not chosen equally. Further questions could be asked about why some maps are chosen more than others but that is outside the scope of our analysis. 
 
