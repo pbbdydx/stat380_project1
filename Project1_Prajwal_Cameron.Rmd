@@ -173,3 +173,37 @@ ggplot(data = cod_working, mapping = aes(x = score)) +
   theme_bw()
 ```
 We see that the scores range from 100 to 7300. It takes a mean of 2944 with a standard deviation of 1464. We see that the mean is slightly higher than the median (around 200), which indicates a little right skew. This is also confirmed by the histogram, where there are a few outliers that are much higher than the bulk of the data.
+
+The fifth variable that we thought is interesting to explore is 'damage'. It is a quantitative variable and there are no missing values. This variable represents the amount of damage a player does in total per round.
+
+```{r}
+sum(is.na(cod_working$damage))
+```
+
+```{r}
+cod_working %>%
+  dplyr::select(damage) %>%
+  summarize(min = min(damage),
+            max = max(damage),
+            mean = mean(damage),
+            median = median(damage),
+            sd = sd(damage))
+
+```
+
+```{r}
+data.frame(cod_working$damage) %>%
+  ggplot(aes(x = cod_working$damage)) +
+    geom_histogram(fill = 'lightgreen', color = 'black') +
+    labs(title = "Distribution of Damage",
+      x = "Damage",
+      y = "Number of Matches"
+    )
+```
+
+From the histogram and summary statistics above, there are a few observations we can make. The damage ranged from 56 to 960, with many values falling in between 250 and 550. The distribution is pretty evenly skewed with a mean of 415.1659 and a median of 397. The histogram shows that there were a few good matches where players had over 750 damage, and some poor matches with under 200 damage. However, most fell in between 250 and 550 as I said before. 
+
+Part 3:
+Was there a single person playing all these matches or multiple(how many)?
+Are all the matches the same length of time?
+How is totalxp calculated?
