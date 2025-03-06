@@ -26,7 +26,7 @@ cod <- read_xlsx("CODGames2_mp.xlsx", sheet = 1)
 glimpse(cod)
 ```
 
-In this data, there are 211 observations, each with 27 different attributes. Variables like `map1`, `map2`, `PrimaryWeapom`, and other character variables could be converted into factors for easier analysis. The variable `XPType` could be converted to a numerical value instead of staying as a character variable. We could do some easy math to arrive at an XP multiplier that is applied to each game. Finally, variables like the date could be parsed by functions from the lubridate package that would make working with them easier. Other work like changing all the NA values in `ObjejctiveKills`, `Captures`, `Plants`, and others would make more sense to make the analysis easier and so that we don't have to work with missing data. Also, rename variables to be in snake case. 
+In this data, there are 211 observations, each with 27 different attributes. Variables like `map1`, `map2`, `PrimaryWeapom`, and other character variables could be converted into factors for easier analysis. The variable `XPType` could be converted to a numerical value instead of staying as a character variable. We could do some easy math to arrive at an XP multiplier that is applied to each game. Finally, variables like the date could be parsed by functions from the lubridate package that would make working with them easier. Other work like changing all the NA values in `ObjejctiveKills`, `Captures`, `Plants`, and others would make more sense to make the analysis easier and so that we don't have to work with missing data. If there are columns with too many NA values, we could also drop them since they would not be helpful to us. 
 
 We can make the following changes and then begin variable exploration. 
 ```{r}
@@ -71,7 +71,7 @@ cod_working <- cod %>%
   ) %>%
   separate(result, into = c('team_result', 'other_team_result'), sep = '-', extra = 'merge', convert = TRUE) 
 
-# drop columns with a lot of NA values
+# drop columns with a lot of NA values, so count the values first 
 apply(cod_working, MARGIN = 2, FUN = function(x) sum(is.na(x))) # counts total NA in columns
 # since NA values are either < 50 or >200 drop all columns with more than 200 NA values
 
@@ -103,7 +103,8 @@ data.frame(cod_working$choice) %>% # convert sngle col into dataframe
     x = 'Count', 
     title = 'Bar Plot of Map Choice',
     caption = '* one dropped value'
-  )
+  ) +
+  theme_bw()
 ```
 
 From the bar chart above, there are a few observations that we can make. The least chosen map is 'Amerika' with 3 picks, the the most chosen are 'Rush', 'Diesel', and 'Crossroads Strike' with 15 picks. Other maps tend to be between 5 and 12 picks. It's interesting to see that the maps are not chosen equally. Further questions could be asked about why some maps are chosen more than others but that is outside the scope of our analysis. 
@@ -128,11 +129,12 @@ cod_working %>%
 ```{r}
 data.frame(cod_working$eliminations) %>%
   ggplot(aes(x = cod_working$eliminations)) +
-    geom_histogram(fill = 'lightgreen', color = 'black') +
+    geom_histogram(binwidth = 1, fill = 'lightgreen', color = 'black') +
     labs(title = "Distribution of Eliminations",
       x = "Eliminations",
       y = "Number of Matches"
-    )
+    ) +
+  theme_bw()
 ```
 
 From the histogram and summary statistics above, there are a few observations we can make. The eliminations ranged from 2 to 39, with many values falling in between 10 and 20. The distribution is right skewed with a mean of 15.09005 and a median of 14. The histogram shows that there were a few good matches where players had over 30 eliminations, and some poor matches with under 10 eliminations. However, most fell in between 10 and 20 as I said before. 
@@ -194,16 +196,42 @@ cod_working %>%
 ```{r}
 data.frame(cod_working$damage) %>%
   ggplot(aes(x = cod_working$damage)) +
-    geom_histogram(fill = 'lightgreen', color = 'black') +
-    labs(title = "Distribution of Damage",
+    geom_histogram(binwidth = 25, fill = 'lightgreen', color = 'black') +
+    labs(title = "Distribution of Damage Dealt",
       x = "Damage",
       y = "Number of Matches"
-    )
+    ) +
+  theme_bw()
 ```
 
 From the histogram and summary statistics above, there are a few observations we can make. The damage ranged from 56 to 960, with many values falling in between 250 and 550. The distribution is pretty evenly skewed with a mean of 415.1659 and a median of 397. The histogram shows that there were a few good matches where players had over 750 damage, and some poor matches with under 200 damage. However, most fell in between 250 and 550 as I said before. 
 
-Part 3:
-Was there a single person playing all these matches or multiple(how many)?
-Are all the matches the same length of time?
-How is totalxp calculated?
+## Questions about the data 
+ - Was there a single person playing all these matches or multiple(how many)?
+ - Are all the matches the same length of time?
+ - How is totalxp calculated?
+
+## Answering Questions with Data Visualizations
+
+- Question: Is the player's performance, as quantified by the experience points gained (TotalXP variable) changing over time?
+
+To answer this question, we should use the lubridate package to extract the dates into something we can work with and then formatting them to only include the month of the year. Then we can change the month into a categorical variable for easier analysis. By inspecting the data, we see that only games played June, July, and August are recorded, so we could make something like a boxplot or violin plot to visualize the distribution of scores.
+
+```{r}
+cod_working$date <- format(as.Date(cod_working$date),"%B")  # extract month
+cod_working$date <- as.factor(cod_working$date)  # make categorical
+```
+
+```{r}
+cod_working <- cod_working %>%
+  mutate(
+    date = fct_relevel(date, 'June', 'July', 'August') # change order to be chronological
+  )
+
+ggplot(data = cod_working, mapping = aes(x = date, y = total_xp)) +
+  geom_violin(fill = 'lightgreen', color = 'black') +
+  theme_bw()
+```
+
+From the violin plot, we can see some interesting results about the total xp distribution. All three months had similar centers, but different spreads of the data. It looks like from June to August, the spread of the data got more concentrated, which we can see from the wider tails near the top of the distribution (and also a lower spread in the violin). July, however, was much different as the distribution was much wider in values. That month, we saw both the highest and lowest score in the games. Across all three months, the most common value was around 10,000 XP points, which is where we see the bulk of the distribution. 
+
