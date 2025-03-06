@@ -1,6 +1,6 @@
 ---
 title: "Mini Project 1"
-author: "Prajwal Bhandari"
+author: "Prajwal Bhandari, Cameron Moore"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -174,6 +174,7 @@ ggplot(data = cod_working, mapping = aes(x = score)) +
     title = 'Call of Duty Score Distribution') +
   theme_bw()
 ```
+
 We see that the scores range from 100 to 7300. It takes a mean of 2944 with a standard deviation of 1464. We see that the mean is slightly higher than the median (around 200), which indicates a little right skew. This is also confirmed by the histogram, where there are a few outliers that are much higher than the bulk of the data.
 
 The fifth variable that we thought is interesting to explore is 'damage'. It is a quantitative variable and there are no missing values. This variable represents the amount of damage a player does in total per round.
@@ -204,7 +205,7 @@ data.frame(cod_working$damage) %>%
   theme_bw()
 ```
 
-From the histogram and summary statistics above, there are a few observations we can make. The damage ranged from 56 to 960, with many values falling in between 250 and 550. The distribution is pretty evenly skewed with a mean of 415.1659 and a median of 397. The histogram shows that there were a few good matches where players had over 750 damage, and some poor matches with under 200 damage. However, most fell in between 250 and 550 as I said before. 
+From the histogram and summary statistics above, there are a few observations we can make. The damage ranged from 56 to 960, with many values falling in between 250 and 550. The distribution is pretty evenly skewed with a mean of 415.1659 and a median of 397. The histogram shows that there were a few good matches where players had over 750 damage, and some poor matches with under 200 damage. However, most fell in between 250 and 550 as mentioned before. 
 
 ## Questions about the data 
  - Was there a single person playing all these matches or multiple(how many)?
@@ -235,3 +236,38 @@ ggplot(data = cod_working, mapping = aes(x = date, y = total_xp)) +
 
 From the violin plot, we can see some interesting results about the total xp distribution. All three months had similar centers, but different spreads of the data. It looks like from June to August, the spread of the data got more concentrated, which we can see from the wider tails near the top of the distribution (and also a lower spread in the violin). July, however, was much different as the distribution was much wider in values. That month, we saw both the highest and lowest score in the games. Across all three months, the most common value was around 10,000 XP points, which is where we see the bulk of the distribution. 
 
+ - Our question: How is the kill death ratio or KD (eliminations over deaths) correlated with score?
+
+```{r}
+cod_working_question <- data.frame(
+  eliminations = cod_working$eliminations,
+  deaths = cod_working$deaths,
+  score = cod_working$score
+)
+
+cod_working_question <- cod_working_question %>%
+  mutate(kd = eliminations / deaths)
+
+ggplot(data = cod_working_question, mapping = aes(x = kd,
+                     y = score)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE) +
+  labs(title = "Kill Death Ratio vs. Score",
+         x = "Kill Death Ratio",
+         y = "Score") +
+  theme_bw()
+```
+
+There seems to be a very strong positive correlation between KD and score which makes sense, because the more kills with less deaths should result in a higher score. The bulk of the data seems to be within 0 and 2 KD with some outliers above 7000 score and influential points with higher than 3 KD, but less than 6000 score. We can use `lm()` to get a regression model for the data and discuss the relationship between KD and score.
+
+```{r}
+summary(lm(score ~ kd, data = cod_working_question))
+```
+
+The OLS Model for score on KD is $$\hat{Score} = 854.7+1879.6KD$$ For every increase in KD, we can expect the score to increase by almost 1900 points. 
+
+
+
+## Discussion on Group Contributions. 
+
+Cameron and I worked quite well on this project and split the work evenly. I did the preliminary data cleaning and analysis of three of the 5 variables. I also was responsible for part 1 of part 4. Cameron did the other two variables and did part 2 of part 4. We worked well to maintain a consistent format in the project with the graphs and story telling (coordinating plot themes and colors).
